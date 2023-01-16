@@ -1,23 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import { Box, Button, TextField } from "@mui/material";
+import "./App.css";
+import { useNavigate } from "react-router-dom";
 
 function App() {
+  const [name, setName] = useState("");
+  const navigate = useNavigate();
+
+  const handleSearchUser = () => {
+    if (name) {
+      navigate(`/users/${name}`);
+    }
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <TextField
+          variant="outlined"
+          label="Github Username"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <Button
+          variant="contained"
+          sx={{ marginLeft: "10px" }}
+          onClick={handleSearchUser}
         >
-          Learn React
-        </a>
-      </header>
+          Search
+        </Button>
+      </Box>
     </div>
   );
 }
