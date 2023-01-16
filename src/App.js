@@ -1,35 +1,64 @@
-import { useState } from "react";
-import { Box, Button, TextField } from "@mui/material";
 import "./App.css";
-import { useNavigate } from "react-router-dom";
+import { SearchUser } from "./pages/SearchUser.js/SearchUser";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import User from "./pages/User/User";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { Box, IconButton } from "@mui/material";
+import { useSelector, useDispatch } from "react-redux";
+import { useMemo } from "react";
+import Brightness4Icon from "@mui/icons-material/Brightness4";
+import Brightness7Icon from "@mui/icons-material/Brightness7";
+import { setMode } from "./redux/state";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <SearchUser />,
+  },
+  {
+    path: "users/:username",
+    element: <User />,
+  },
+]);
 
 function App() {
-  const [name, setName] = useState("");
-  const navigate = useNavigate();
-
-  const handleSearchUser = () => {
-    if (name) {
-      navigate(`/users/${name}`);
-    }
-  };
+  const dispatch = useDispatch();
+  const mode = useSelector((state) => state.global.mode);
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: mode,
+        },
+      }),
+    [mode]
+  );
 
   return (
     <div className="App">
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <TextField
-          variant="outlined"
-          label="Github Username"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <Button
-          variant="contained"
-          sx={{ marginLeft: "10px" }}
-          onClick={handleSearchUser}
+      <Box sx={{ position: "fixed", right: "60px", top: "20px" }}>
+        {theme.palette.mode} mode
+        <IconButton
+          color="inherit"
+          onClick={() => dispatch(setMode(theme.palette.mode))}
         >
-          Search
-        </Button>
+          {theme.palette.mode === "dark" ? (
+            <Brightness7Icon />
+          ) : (
+            <Brightness4Icon />
+          )}
+        </IconButton>
       </Box>
+
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router}>
+          <main>
+            <SearchUser />
+          </main>
+        </RouterProvider>
+      </ThemeProvider>
     </div>
   );
 }
