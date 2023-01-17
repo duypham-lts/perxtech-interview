@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Box, Button, TextField } from "@mui/material";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function SearchUser() {
   const [name, setName] = useState("");
@@ -35,6 +35,7 @@ export function SearchUser() {
         sx={{ marginLeft: "10px" }}
         onClick={(e) => handleSearchUser(e)}
         type="submit"
+        disabled={!name}
       >
         Search
       </Button>

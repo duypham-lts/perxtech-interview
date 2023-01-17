@@ -7,85 +7,95 @@ import {
   Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Orgs from "../../components/Orgs/Orgs";
 import Repos from "../../components/Repos/Repos";
-import octokit from "./../../octokit/octokit";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import UserNotFound from "../../components/UserNotFound/UserNotFound";
 import { useQuery } from "@tanstack/react-query";
 import { getUserInfo } from "./../../apis/user.api";
+import { getRepoList } from "../../apis/repo.api";
+import { getOrganizationList } from "../../apis/organization.api";
 
 const User = () => {
   let { username } = useParams();
   const [view, setView] = useState("repo");
-  const [repoList, setRepoList] = useState([]);
-  const [userInfo, setUserInfo] = useState(null);
-
-  const getRepos = async () => {
-    const res = await octokit.request(`GET /users/${username}/repos?page=2`);
-    // console.log(res);
-    if (res.status === 200) {
-      setRepoList(res.data);
-    }
-  };
 
   const userInfoQuery = useQuery({
-    queryKey: ["userInfo"],
+    queryKey: ["userInfo", username],
     queryFn: () => getUserInfo(username),
+    retry: false,
   });
 
-  console.log(userInfoQuery?.isError);
+  const reposQuery = useQuery({
+    queryKey: ["repos", username],
+    queryFn: () => getRepoList(username),
+    enabled: !!userInfoQuery?.data?.data,
+    retry: false,
+  });
 
-  // const getUserInfo = async () => {
-  //   const res = await octokit.request(`GET /users/${username}`);
-  //   if (res.status === 200) {
-  //     setUserInfo(res.data);
-  //   }
-  // };
+  const orgsQuery = useQuery({
+    queryKey: ["orgs", username],
+    queryFn: () => getOrganizationList(username),
+    enabled: !!userInfoQuery?.data?.data,
+    retry: false,
+  });
 
-  useEffect(() => {
-    getRepos();
-    // getUserInfo();
-    // eslint-disable-next-line
-  }, [username]);
-
-  if (userInfoQuery.isFetching) {
-    return <h1>Loading...</h1>;
-  } else if (userInfoQuery.isError) {
-    return <UserNotFound />;
-  } else if (userInfoQuery.data.data) {
-    return (
-      <Box sx={{ display: "flex" }}>
-        <Box sx={{ width: "100%", maxWidth: 360, minHeight: "100vh" }}>
-          <Box sx={{ display: "flex", alignItems: "center", padding: 2 }}>
-            <Avatar
-              src={userInfoQuery?.data?.data.avatar_url}
-              sx={{ marginRight: 1 }}
-            />
-            <Typography sx={{ fontWeight: 600 }}>
-              {userInfoQuery?.data?.data.login}
-            </Typography>
+  return (
+    <>
+      {userInfoQuery.isLoading && <h1>Loading...</h1>}
+      {userInfoQuery.isError && <UserNotFound />}
+      {userInfoQuery.data && (
+        <Box sx={{ display: "flex" }}>
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: 360,
+              minHeight: "100vh",
+              borderRight: "1px solid #C5C5C5",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", padding: 2 }}>
+              <Avatar
+                src={userInfoQuery?.data?.data.avatar_url}
+                sx={{ marginRight: 1 }}
+              />
+              <Typography sx={{ fontWeight: 600 }}>
+                {userInfoQuery?.data?.data.login}
+              </Typography>
+            </Box>
+            <List>
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => setView("repo")}>
+                  <ListItemText primary="Repository" />
+                </ListItemButton>
+              </ListItem>
+              <ListItem disablePadding>
+                <ListItemButton onClick={() => setView("org")}>
+                  <ListItemText primary="Organization" />
+                </ListItemButton>
+              </ListItem>
+            </List>
           </Box>
-          <List>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setView("repo")}>
-                <ListItemText primary="Repository" />
-              </ListItemButton>
-            </ListItem>
-            <ListItem disablePadding>
-              <ListItemButton onClick={() => setView("org")}>
-                <ListItemText primary="Organization" />
-              </ListItemButton>
-            </ListItem>
-          </List>
+          <main>
+            {view === "repo" ? (
+              <Repos
+                repos={reposQuery?.data?.data}
+                isLoading={reposQuery.isLoading}
+                isError={reposQuery.isError}
+              />
+            ) : (
+              <Orgs
+                orgs={orgsQuery?.data?.data}
+                isLoading={orgsQuery.isLoading}
+                isError={orgsQuery.isError}
+              />
+            )}
+          </main>
         </Box>
-        <main>
-          {view === "repo" ? <Repos repoList={repoList} /> : <Orgs />}
-        </main>
-      </Box>
-    );
-  } 
+      )}
+    </>
+  );
 };
 
 export default User;

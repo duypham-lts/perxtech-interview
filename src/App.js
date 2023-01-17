@@ -37,26 +37,24 @@ function App() {
 
   return (
     <div className="App">
-      <Box sx={{ position: "fixed", right: "60px", top: "20px" }}>
-        {theme.palette.mode} mode
-        <IconButton
-          color="inherit"
-          onClick={() => dispatch(setMode(theme.palette.mode))}
-        >
-          {theme.palette.mode === "dark" ? (
-            <Brightness7Icon />
-          ) : (
-            <Brightness4Icon />
-          )}
-        </IconButton>
-      </Box>
-
       <ThemeProvider theme={theme}>
+        <Box sx={{ position: "fixed", right: "40px", top: "10px" }}>
+          {theme.palette.mode} mode
+          <IconButton
+            color="inherit"
+            onClick={() => dispatch(setMode(theme.palette.mode))}
+          >
+            {theme.palette.mode === "dark" ? (
+              <Brightness7Icon />
+            ) : (
+              <Brightness4Icon />
+            )}
+          </IconButton>
+        </Box>
+
         <CssBaseline />
         <RouterProvider router={router}>
-          <main>
-            <SearchUser />
-          </main>
+          <SearchUser />
         </RouterProvider>
       </ThemeProvider>
     </div>
